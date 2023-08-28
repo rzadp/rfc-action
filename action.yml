@@ -3,5 +3,5 @@ description: 'A GitHub Action aiming to help in the creation of RFC proposal ref
 author: 'Parity Technologies'
 
 runs:
-  using: node18
+  using: node20
   main: dist/index.js

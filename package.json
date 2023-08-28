@@ -18,7 +18,7 @@
   ],
   "main": "dist/index.js",
   "engines": {
-    "node": "^18"
+    "node": "^20"
   },
   "scripts": {
     "lint": "yarn eslint --quiet '{*,**/*}.{js,ts}' && yarn prettier --check '{*,**/*}.json'",
@@ -41,7 +41,7 @@
     "@eng-automation/js-style": "^2.2.0",
     "@octokit/webhooks-types": "^7.2.0",
     "@types/jest": "^29.5.4",
-    "@types/node": "^18",
+    "@types/node": "^20",
     "@types/node-fetch": "^2",
     "@vercel/ncc": "^0.36.1",
     "jest": "^29.6.2",
