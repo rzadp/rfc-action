@@ -1,19 +1,7 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-
-# Define your inputs here.
-inputs:
-  milliseconds:
-    description: 'Your input description here'
-    required: true
-    default: '1000'
-
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
+name: '@paritytech/rfc-propose'
+description: 'A GitHub Action aiming to help in the creation of RFC proposal referenda.'
+author: 'Parity Technologies'
 
 runs:
-  using: node16
+  using: node18
   main: dist/index.js
