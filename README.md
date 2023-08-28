@@ -11,6 +11,15 @@ Learn more about the RFC proposal process [here](https://github.com/polkadot-fel
 To use the action in a repository, add a job that is going to run on specific comments on PRs:
 
 ```yaml
+name: RFC propose
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+
 jobs:
   rfc-propose:
     name: Propose an RFC creation transaction
@@ -20,10 +29,11 @@ jobs:
       - uses: paritytech/rfc-propose@main
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 ```
 
 ### Environment variables
 
 The action uses the `GH_TOKEN` environment variable supplied to it.
-The built-in `secrets.GITHUB_TOKEN` variable is enough - it has the access rights to comment on a PR,
-which is all that the actions needs.
+
+The built-in `secrets.GITHUB_TOKEN` can be used, as long as it has the `pull-requests` write permissions.
