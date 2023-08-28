@@ -5,8 +5,8 @@ on:
     types: [created]
 
 jobs:
-  process:
-    name: Process Comment
+  rfc-propose:
+    name: Propose an RFC creation transaction
     if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/rfc-propose') }}
     runs-on: ubuntu-latest
     steps:
