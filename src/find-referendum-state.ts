@@ -6,11 +6,18 @@ import { ParseRFCResult } from "./parse-RFC";
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment */
 
-export const findReferendum = async (opts: {
+/**
+ * @returns Find the state of a referendum concerning this RFC.
+ * The returned RFC referendum state can be one of:
+ * - approved (and executed) - meaning the referendum approving this RFC has passed and has been executed,
+ * - rejected (and executed) - meaning the referendum rejecting this RFC has passed and has been executed,
+ * - null, meaning that the referendum in a proper state with a proper remark has not been found. It's possible there is a referendum approving or rejecting this RFC but has not passed and not been executed yet.
+ */
+export const findReferendumState = async (opts: {
   parseRFCResult: ParseRFCResult;
   blockHash: string;
   providerUrl?: string | undefined;
-}): Promise<null | { approved: boolean }> => {
+}): Promise<null | "approved" | "rejected"> => {
   const api = new ApiPromise({ provider: new WsProvider(opts.providerUrl ?? PROVIDER_URL) });
   await api.isReadyOrError;
 
@@ -37,11 +44,11 @@ export const findReferendum = async (opts: {
 
       if (remarkMatchesProposal(api.tx.system.remark(opts.parseRFCResult.approveRemarkText))) {
         await api.disconnect();
-        return { approved: true };
+        return "approved";
       }
       if (remarkMatchesProposal(api.tx.system.remark(opts.parseRFCResult.rejectRemarkText))) {
         await api.disconnect();
-        return { approved: false };
+        return "rejected";
       }
     }
   }
