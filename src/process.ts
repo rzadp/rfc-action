@@ -1,8 +1,18 @@
 import * as githubActions from "@actions/github";
+import type { PullRequestMergeMethod } from "@octokit/graphql-schema";
+import type { Issue } from "@octokit/webhooks-types";
 
 import { findReferendumState } from "./find-referendum-state";
 import { parseRFC } from "./parse-RFC";
 import { RequestResult, RequestState } from "./types";
+
+// https://docs.github.com/en/graphql/reference/mutations#mergepullrequest
+export const MERGE_PULL_REQUEST = `
+mutation($prId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+  mergePullRequest(input: {pullRequestId: $prId, mergeMethod: $mergeMethod}) {
+      clientMutationId
+  }
+}`;
 
 const blockHashInstructions =
   `<details><summary>Instructions to find the block hash</summary>` +
@@ -40,6 +50,8 @@ export const handleProcessCommand = async (
     };
   }
 
+  const { octokitInstance: octokit } = requestState;
+
   const referendumState = await findReferendumState({ parseRFCResult, blockHash });
   if (!referendumState) {
     return {
@@ -48,15 +60,19 @@ export const handleProcessCommand = async (
     };
   } else if (referendumState === "approved") {
     try {
-      await requestState.octokitInstance.rest.pulls.merge({
-        owner: githubActions.context.repo.owner,
-        repo: githubActions.context.repo.repo,
-        pull_number: githubActions.context.issue.number,
-        merge_method: "squash",
+      const mergeMethod: PullRequestMergeMethod = "SQUASH";
+      const prId = (githubActions.context.payload.issue as Issue).node_id;
+      octokit.log.warn(
+        `Trying to squash-merge PR #${githubActions.context.issue.number} in ${githubActions.context.repo.owner}/${githubActions.context.repo.repo}. The PR's node_id is ${prId}`,
+      );
+      await octokit.graphql(MERGE_PULL_REQUEST, {
+        prId,
+        mergeMethod,
       });
       return { success: true, message: "The on-chain referendum has approved the RFC." };
     } catch (e) {
-      requestState.octokitInstance.log.error(String(e));
+      octokit.log.error(String(e));
+      octokit.log.error((e as Error).stack ?? "No stacktrace available");
       return {
         success: false,
         errorMessage:
@@ -65,7 +81,7 @@ export const handleProcessCommand = async (
     }
   } else if (referendumState === "rejected") {
     try {
-      await requestState.octokitInstance.rest.pulls.update({
+      await octokit.rest.pulls.update({
         owner: githubActions.context.repo.owner,
         repo: githubActions.context.repo.repo,
         pull_number: githubActions.context.issue.number,
@@ -73,7 +89,7 @@ export const handleProcessCommand = async (
       });
       return { success: true, message: "The on-chain referendum has rejected the RFC." };
     } catch (e) {
-      requestState.octokitInstance.log.error(String(e));
+      octokit.log.error(String(e));
       return {
         success: false,
         errorMessage:
