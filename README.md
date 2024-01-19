@@ -74,3 +74,35 @@ The built-in `secrets.GITHUB_TOKEN` can be used, as long as it has the necessary
 The `PROVIDER_URL` variable can be specified to override the default public endpoint to the Collectives parachain.
 
 A full archive node is needed to process the confirmed referenda.
+
+## Notification job
+
+You can set the GitHub action to also run notifying on a PR when a referenda is available for voting.
+
+It will look for new referendas available since the last time the action was run, so it won't generate duplicated messages.
+
+```yml
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 12 * * *'
+
+jobs:
+  notify_referendas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get last run
+        run: |
+          last=$(gh run list -w "$WORKFLOW" --json startedAt,status -q 'map(select(.status == "completed"))[0].startedAt')
+          echo "last=$last" >> "$GITHUB_OUTPUT"
+        id: date
+        env: 
+          GH_TOKEN: ${{ github.token }}
+          WORKFLOW: ${{ github.workflow }}
+          GH_REPO: "${{ github.repository_owner }}/${{ github.event.repository.name }}"
+      - uses: paritytech/rfc-action@main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROVIDER_URL: "wss://polkadot-collectives-rpc.polkadot.io" # Optional.
+          START_DATE: ${{ steps.date.outputs.last }}
+```
