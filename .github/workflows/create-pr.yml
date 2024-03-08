@@ -1,0 +1,44 @@
+name: Create a test PR after merge
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-pr:
+    name: Create a test PR after merge 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # We need a fresh base branch every time,
+      # so that it doesn't contain the text that we want to merge with the PR.
+      - name: Generate branch names
+        id: generate_branches
+        run: |
+          timestamp=$(date +%Y-%m-%dT%H-%M)
+          echo "base_branch=test_base_$timestamp" >> $GITHUB_OUTPUT
+          echo "head_branch=test_head_$timestamp" >> $GITHUB_OUTPUT
+      
+      - name: Create a base branch
+        run: |
+          git checkout -b ${{ steps.generate_branches.outputs.base_branch }}
+          git push --set-upstream origin ${{ steps.generate_branches.outputs.base_branch }}
+      
+      - name: Create the changes for the PR
+        run: |
+          git checkout -b ${{ steps.generate_branches.outputs.head_branch }}
+          mkdir text
+          cp src/examples/0014-improve-locking-mechanism-for-parachains.md ./text/
+
+      - name: Create a PR to the newsletter repo
+        uses: peter-evans/create-pull-request@5b4a9f6a9e2af26e5f02351490b90d01eb8ec1e5 # v5
+        with:
+          base: ${{ steps.generate_branches.outputs.base_branch }}
+          add-paths: |
+            text/*.md
+          title: "[Post-merge test] A test PR for testing the action"
+          body: "Use `/rfc process` to merge the PR and test the action after a recent push to `main`."
