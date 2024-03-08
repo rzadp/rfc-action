@@ -44,4 +44,4 @@ jobs:
           add-paths: |
             text/*.md
           title: "[Post-merge test] A test PR for testing the action"
-          body: "@${{ github.event.pusher.name }} Use `/rfc process` to merge the PR and test the action after a recent push to `main`."
+          body: "@paritytech/opstooling This is a test PR created automatically because a recent change has been merged to master.\nUse `/rfc process 0x39fbc57d047c71f553aa42824599a7686aea5c9aab4111f6b836d35d3d058162` to process the PR and test out the code on `main`."
